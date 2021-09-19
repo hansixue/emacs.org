@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#To start exwm with sddm.
+#You need to creat emacs.desktop in your Xsession folder
+
+#To make fcitx5 run properly
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=\@im=fcitx
+export SDL_IM_MODULE=fcitx
+export LC_CTYPE=zh_CN.UTF-8
+
+# debug
+# echo “/etc/X11/xinit/xinitrc.d/fcitx5.sh is executed” >> /home/han/log.txt
+
+#run fcitx5 without open a dialog.
+nohup fcitx5 >/home/han/log.txt 2>&1 &
+
+#run emacs
+emacs
