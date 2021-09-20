@@ -1,0 +1,430 @@
+* settings
+在init.el里加入(org-babel-load-file "~/emacs-init.org")来执行这个文件
+** Custom
+*** 网易镜像报错
+应该是网易的镜像更新不及时导致的报错。不过我把custom.el里的源换成melpa了，启动还是读的163。
+只好进lisp/init-custom.el里把定义的netease源的内容改成了melpa的内容。
+在custom.el里的下面还有个quota netease得换，换了就好了。
+不过gun elpha也不太稳定，又换回网易了。
+*** 配置等宽字体 
+在[[~/.emacs.d/custom.el][custom.el]]里的set default font里的那一串字体里把想用的放到第一个。直接在菜单里改会被覆盖掉。
+不过会影响emoji的显示，最后选择把sarasa钩在 telega-chat-hook 上。问题解决。
+*** COMMENT theme
+得在custom.el了改了才有用。
+#+begin_src emacs-lisp :tangle no
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+#+end_src
+*** Default browser
+#+begin_src emacs-lisp :tangle yes
+(setq browse-url-browser-function 'browse-url-firefox)
+#+end_src
+*** COMMENT 把C-x w改成prefix key来启动我其他的东西
+#+begin_src emacs-lisp :tangle yes
+(define-prefix-command 'my-fastway)
+(global-set-key (kbd "C-x w") 'my-fastway)
+#+end_src
+*** 为了在vterm里用powerline10k,得改一下vterm的字体，出处在[[https://emacs-china.org/t/term-mode-powerline/13595/3][这里]]
+#+begin_src emacs-lisp
+  (add-hook 'vterm-mode-hook
+            (lambda ()
+     (set (make-local-variable 'buffer-face-mode-face)
+        ;;字体要选mono的才能正确显示图标，不过会莫名增加几个像素的行间距，用单行模式就没影响了。
+          '(:family "Hack Nerd Font Moto" ))
+     (buffer-face-mode t)))
+#+end_src
+** [[https://github.com/raxod502/straight.el][straight.el]]
+#+begin_src emacs-lisp :tangle yes
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+  (straight-use-package 'use-package)
+#+end_src
+** fcitx.el
+[[https://github.com/cute-jumper/fcitx.el][fcitx.el主页]]。阻止输入法干扰快捷键
+fcitx5的支持有个问题见[[https://github.com/cute-jumper/fcitx.el/issues/47][issue]]
+elpa的fcitx5的版本太老了不支持，索性自己下载一个用
+[[https://github.com/cute-jumper/fcitx.el/issues/52][这个问题]]导致目前不能用，先注释掉看看啥时候更新。
+#+begin_src emacs-lisp :tangle yes
+  (straight-use-package
+      '(fcitx :type git :host github :repo "cute-jumper/fcitx.el"))
+  (require 'fcitx)
+  (setq fcitx-remote-command "fcitx5-remote");;fcixt5的支持
+  (fcitx-aggressive-setup)
+  ;(setq fcitx-use-dbus t)
+#+end_src
+** COMMENT imbot
+来自[[https://github.com/QiangF/imbot][这里]]，不是很懂咋玩。功能同上，防止输入影响功能键输入的。
+不过也不是刚需，试了试用了也没啥变化，算了吧。
+#+begin_src emacs-lisp
+  (use-package imbot
+    :preface
+    (setq imbot--im-config 'imbot--fcitx5))
+  (setq imbot–active-omit-check t)
+#+end_src
+** org-mode
+Refer to centaur file [[~/.emacs.d/lisp/init-org.el][init-org.el]]
+*** folder of org files
+[[~/.emacs.d/lisp/init-org.el::115][org-agenda-files]]
+*** 自动把全部子标题都DONE的TODO改为DONE
+出自org manual 5.5
+#+begin_src emacs-lisp :tangle yes
+    (defun org-summary-todo (n-done n-not-done)
+      "Switch entry to DONE when all subentries are done, to TODO otherwise."
+      (let (org-log-done org-log-states); turn off logging
+        (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+
+  
+    (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+#+end_src
+*** agenda显示的日期数
+#+begin_src emacs-lisp :tangle yes
+(setq org-agenda-span 3)
+#+end_src
+*** org-capture
+[[https://github.com/progfolio/doct][doct]]提供了一个更直观的模版，不过得和[[https://orgmode.org/manual/Capture-templates.html#Capture-templates][manual]]一起看才看得懂。
+#+begin_src emacs-lisp :tangle yes
+        (global-set-key (kbd "C-c c") 'org-capture)
+        (setq org-default-notes-file (concat org-directory "~/org/capture.org"))
+        (use-package doct
+          :ensure t
+          ;;recommended: defer until calling doct
+          :commands (doct)
+          :init (setq org-capture-templates
+                      (doct '(("work task" 
+                               :keys "w"
+                               :file "~/org/work.org" 
+                               ;;:headline "captured"
+                               :type entry
+                               :template ("* TODO %?"
+                                          ":PROPERTIES:"
+                                          ":Created: %U"
+                                          ":END:"))
+                              ("dairy"
+                               :keys "d"
+                               :file "~/org/log/diary.org"
+                               :entry entry
+                               :template ("* %<%Y年%m月%d日%H:%M>"
+                                          "  %?"))
+                              ("note"
+                               :keys "n"
+                               :file "~/org/notes/capture.org"
+                               :entry entry
+                               :template ("* REFILE %?"
+                                          "captured at %<%Y年%m月%d日%H:%M>"))
+                              ))))
+#+end_src
+*** org-roam
+from [[https://github.com/org-roam/org-roam][github]]
+#+begin_src emacs-lisp :tangle yes
+  (use-package org-roam
+        :ensure t
+        :hook
+        (after-init . org-roam-mode)
+        :custom
+        (org-roam-directory "~/org/notes")
+        (org-roam-link-title-format "R:%s")
+        :bind (:map org-roam-mode-map
+                (("C-c n l" . org-roam)
+                 ("C-c n f" . org-roam-find-file)
+                 ("C-c n g" . org-roam-graph-show))
+                :map org-mode-map
+                (("C-c n i" . org-roam-insert))
+                (("C-c n I" . org-roam-insert-immediate))))
+
+(setq org-roam-v2-ack t)
+#+end_src
+**** COMMENT for company-org-roam
+company-org-roam has been replaced by capf, and its full functionality is now present within org-roam itself. Do not install this!
+#+begin_src emacs-lisp 
+;;(require 'company-org-roam)
+;;(push 'company-org-roam company-backends)
+#+end_src
+*** org-brain
+#+begin_src emacs-lisp :tangle yes
+(global-set-key (kbd "C-c 2") 'org-brain-visualize)
+(use-package org-brain :ensure t
+  :init
+  (setq org-brain-path "~/org/notes")
+)
+(add-hook 'before-save-hook 'org-brain-ensure-ids-in-buffer)
+#+end_src
+*** COMMENT org-protocol
+from [[https://orgmode.org/worg/org-contrib/org-protocol.html][here]]
+一个从网页上直接拿内容到org的工具。
+#+begin_src emacs-lisp :tangle yes
+(server-start)
+(add-to-list 'load-path "~/path/to/org/protocol/")
+(require 'org-protocol)
+#+end_src
+*** org-books
+from [[https://github.com/lepisma/org-books][here]].一个在goodreads上拿到一本书的数据的工具。
+#+begin_src emacs-lisp :tangle yes
+(setq org-books-file "~/org/notes/reading.org")
+#+end_src
+** elfeed
+[[https://github.com/skeeto/elfeed][Mainpage]] 
+*** elfeed-org
+[[https://github.com/remyhonig/elfeed-org][Mainpage]] 简单来说就是一个用org写的关注列表
+#+begin_src emacs-lisp :tangle yes
+;; Load elfeed-org
+(require 'elfeed-org)
+
+;; Initialize elfeed-org
+;; This hooks up elfeed-org to read the configuration when elfeed
+;; is started with =M-x elfeed=
+(elfeed-org)
+
+;; Optionally specify a number of files containing elfeed
+;; configuration. If not set then the location below is used.
+;; Note: The customize interface is also supported.
+(setq rmh-elfeed-org-files (list "~/.config/emacs/elfeed.org"))
+#+end_src
+*** [[http://xenodium.com/open-emacs-elfeed-links-in-background/index.html][Open Emacs elfeed links in the background]]
+but just for macos
+*** keybinding
+form [[https://github.com/zamansky/using-emacs/blob/master/myinit.org][Using-emacs]] 
+#+begin_src emacs-lisp :tangle yes
+  (global-set-key (kbd "C-c 3") 'elfeed)
+  (defun elfeed-mark-all-as-read ()
+    (interactive)
+    (mark-whole-buffer)
+    (elfeed-search-untag-all-unread))
+
+  (use-package elfeed
+    :ensure t
+    :init (add-hook 'elfeed-search-mode-hook 'linum-mode)
+    ;;(add-hook 'elfeed-show-mode-hook 'linum-mode)
+
+    :bind (:map elfeed-search-mode-map
+           ;;("q" . bjm/elfeed-save-db-and-bury)
+           ;;("Q" . bjm/elfeed-save-db-and-bury)
+           ("m" . elfeed-toggle-star)
+           ("M" . elfeed-toggle-star)
+           ;;("j" . mz/make-and-run-elfeed-hydra)
+           ;;("J" . mz/make-and-run-elfeed-hydra)
+           ("d" . define-word-at-point)
+           ("D" . define-word)
+           ("R" . elfeed-mark-all-as-read)
+           )
+    :bind (:map elfeed-show-mode-map
+           ("d" . define-word-at-point)
+           ("D" . define-word)
+           ("e" . elfeed-show-save-enclosure)
+           )
+    :config 
+    (defalias 'elfeed-toggle-star
+      (elfeed-expose #'elfeed-search-toggle-all 'star))
+    (display-line-numbers-mode t)  
+    )
+#+end_src
+** [[https://github.com/zevlg/telega.el][Telega]]
+*** set font for telega
+from [[https://www.emacswiki.org/emacs/FacesPerBuffer#toc3][wiki]] ;;not working
+#+begin_src emacs-lisp :tangle yes
+     ;; Use variable width font faces in current buffer
+  (defun my-buffer-face-mode-sarasa ()
+    "Set font to a sarasa fonts in current buffer"
+    (interactive)
+    (setq buffer-face-mode-face '(:family "Sarasa Mono SC" :height 210))
+    (buffer-face-mode +1))
+
+  (use-package telega
+    :commands telega
+    :init
+    (add-hook 'telega-chat-mode-hook  'my-buffer-face-mode-sarasa))
+#+end_src
+*** enable notification
+#+begin_src emacs-lisp :tangle yew
+(telega-notifications-mode 1)
+#+end_src
+*** Enabling emoji completions in chat buffer
+#+begin_src emacs-lisp :tangle no
+(add-hook 'telega-chat-mode-hook
+          (lambda ()
+            (set (make-local-variable 'company-backends)
+                 (append '(telega-company-emoji
+                           telega-company-username
+                           telega-company-hashtag)
+                         (when (telega-chat-bot-p telega-chatbuf--chat)
+                           '(telega-company-botcmd))))
+            (company-mode 1)))
+#+end_src
+*** C-q C-j 在对话栏里换行
+** COMMENT define word
+#+begin_src emacs-lisp :tangle yes
+  (global-set-key (kbd "C-c d") 'define-word-at-point)
+  (global-set-key (kbd "C-c D") 'define-word)
+#+end_src
+** Pdf-view
+from [[https://www.reddit.com/r/emacs/comments/gshn9c/doom_emacs_as_a_pdf_viewer/][here]]
+#+begin_src emacs-lisp :tangle yes
+(use-package pdf-tools
+  :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
+  :hook (pdf-tools-enabled . hide-mode-line-mode)
+  :config 
+        (setq pdf-view-midnight-colors '("#ABB2BF" . "#282C35")))
+#+end_src
+** anki-editor
+#+begin_src emacs-lisp
+(use-package anki-editor
+  :ensure t)
+#+end_src
+* exwm
+about how dual monitor work with xrandr [[https://blog.summercat.com/configuring-mixed-dpi-monitors-with-xrandr.html][here]] have a solution.
+about how to make the first workspace 1, not 0. is [[https://www.reddit.com/r/emacs/comments/arqg6z/exwm_workspace_numbering/][here]]
+#+begin_src emacs-lisp :tangle yes
+      (server-start)
+      (require 'exwm)
+      (require 'exwm-config)
+
+      ;; Show the time and date in modeline
+      (setq display-time-day-and-date t)
+      (display-time-mode 1)
+      ;; Also take a look at display-time-format and format-time-string
+
+      (require 'exwm-randr)
+      (exwm-randr-enable)
+      (start-process-shell-command "xrandr" nil "xrandr --fb 3640x1920  --output HDMI-1 --mode 1920x1080  --rotate right --output DP-2   --mode 2560x1440  --rotate normal --pos 1080x480  --primary\
+                                                         &>~/log.txt")
+      ;;exwm奇特的一点是，它每个显示器会视为一个workspace,你得告诉它哪个是哪个才行
+      (setq exwm-randr-workspace-output-plist '(0 "HDMI-1" 1 "DP-2"))
+
+
+      ;;display name of program
+      (add-hook 'exwm-update-class-hook
+                (lambda ()
+                  (exwm-workspace-rename-buffer exwm-class-name)))
+      ;; Set the initial number of workspaces (they can also be created later).
+      (setq exwm-workspace-number 4)
+
+      ;make the first workspace at 1
+      (setq exwm-workspace-index-map
+            (lambda (index) (number-to-string (1+ index))))
+
+      (dotimes (i 10)
+        (exwm-input-set-key (kbd (format "s-%d" i))
+                            `(lambda ()
+                               (interactive)
+                               (exwm-workspace-switch-create (1- ,i)))))
+      ;;systemtary
+      (require 'exwm-systemtray)
+      (exwm-systemtray-enable)
+
+      ;; All buffers created in EXWM mode are named "*EXWM*". You may want to
+      ;; change it in `exwm-update-class-hook' and `exwm-update-title-hook', which
+      ;; are run when a new X window class name or title is available.  Here's
+      ;; some advice on this topic:
+      ;; + Always use `exwm-workspace-rename-buffer` to avoid naming conflict.
+      ;; + For applications with multiple windows (e.g. GIMP), the class names of
+      ;; all windows are probably the same.  Using window titles for them makes
+      ;;   more sense.
+      ;; In the following example, we use class names for all windows except for
+      ;; Java applications and GIMP.
+      (add-hook 'exwm-update-class-hook
+                (lambda ()
+                  (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                              (string= "gimp" exwm-instance-name))
+                    (exwm-workspace-rename-buffer exwm-class-name))))
+      (add-hook 'exwm-update-title-hook
+                (lambda ()
+                  (when (or (not exwm-instance-name)
+                            (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                            (string= "gimp" exwm-instance-name))
+                    (exwm-workspace-rename-buffer exwm-title))))
+
+      ;; Global keybindings can be defined with `exwm-input-global-keys'.
+      ;; Here are a few examples:
+      (setq exwm-input-global-keys
+            `(
+              ;; Bind "s-r" to exit char-mode and fullscreen mode.
+              ([?\s-r] . exwm-reset)
+              ;; Bind "s-w" to switch workspace interactively.
+              ([?\s-w] . exwm-workspace-switch)
+              ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
+              ,@(mapcar (lambda (i)
+                          `(,(kbd (format "s-%d" i)) .
+                            (lambda ()
+                              (interactive)
+                              (exwm-workspace-switch-create ,i))))
+                        (number-sequence 0 9))
+              ;; Bind "s-&" to launch applications ('M-&' also works if the output
+              ;; buffer does not bother you).
+              ([?\s-c] . (lambda (command)
+                           (interactive (list (read-shell-command "$ ")))
+                           (start-process-shell-command command nil command)))
+              ;; Bind "s-<f2>" to "slock", a simple X display locker.
+              ([s-f2] . (lambda ()
+                          (interactive)
+                          (start-process "" nil "/usr/bin/slock")))))
+
+
+
+      ;; Launch applications via shell command
+
+      ;; The following example demonstrates how to use simulation keys to mimic
+      ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys` is a
+      ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
+      ;; and DEST is what EXWM actually sends to application.  Note that both SRC
+      ;; and DEST should be key sequences (vector or string).
+      (setq exwm-input-simulation-keys
+            '(
+              ;; movement
+              ([?\C-b] . [left])
+              ([?\M-b] . [C-left])
+              ([?\C-f] . [right])
+              ([?\M-f] . [C-right])
+              ([?\C-p] . [up])
+              ([?\C-n] . [down])
+              ([?\C-a] . [home])
+              ([?\C-e] . [end])
+              ([?\M-v] . [prior])
+              ([?\C-v] . [next])
+              ([?\C-d] . [delete])
+              ([?\C-k] . [S-end delete])
+              ;; cut/paste.
+              ([?\C-w] . [?\C-x])
+              ([?\M-w] . [?\C-c])
+              ([?\C-y] . [?\C-v])
+              ;; search
+              ([?\C-s] . [?\C-f])))
+
+      ;(shell-command "fcitx5 >/dev/null 2>&1 &")
+      ;;   (require 'mozc)
+      ;;   (setq mozc-candidate-style 'overlay)
+      ;;   (use-package rime)
+      ;; (setq default-input-method "mozc")
+      ;; using xim input
+      ;; (require 'exwm-xim)
+      ;; (exwm-xim-enable)
+      ;; (push ?\C-\\ exwm-input-prefix-keys) 
+      ;; use Ctrl + \ to switch input method
+
+      ;; You can hide the minibuffer and echo area when they're not used, by
+      ;; uncommenting the following line.
+      ;;(setq exwm-workspace-minibuffer-position 'bottom)
+
+      ;; Do not forget to enable EXWM. It will start by itself when things are
+      ;; ready.  You can put it _anywhere_ in your configuration.
+      (exwm-enable)
+#+end_src
+** exwm下关于启动fcitx的问题
+<2021-09-19 Sun>
+在exwm里又出现了之前在其他系统里出现的问题，无法切换输入法。问题依旧是在没有配置环境变量。
+不过在加载exwm之前并不会加载xinit(甚至在KDE里也不会，不知道为啥)。
+一番查找方法之后，解决办法是在exwm启动之前就先把环境变量设置好，而不能等到emacs里面再设置。
+具体的方法是把/usr/share/xession里的emacs.desktop里的Exec=emacs改成自己的脚本。
+我这里是用的~/.emacsrc。
+里面把需要设置的变量，包括IM和LC_CTYPE都设置好，再启动fcitx5(注意5必须加)。
+最后启动emacs。
+OK。
+顺带，启动登录的画面的分辨率调节是在/efi/usr/share/sddm/scripts/Xsetup设置。
+
