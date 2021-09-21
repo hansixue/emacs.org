@@ -1,5 +1,5 @@
 * settings
-在init.el里加入(org-babel-load-file "~/emacs-init.org")来执行这个文件
+在init.el里加入(org-babel-load-file "~/.emacs-init.org")来执行这个文件
 ** Custom
 *** 网易镜像报错
 应该是网易的镜像更新不及时导致的报错。不过我把custom.el里的源换成melpa了，启动还是读的163。
@@ -276,6 +276,11 @@ from [[https://www.reddit.com/r/emacs/comments/gshn9c/doom_emacs_as_a_pdf_viewer
 ** anki-editor
 #+begin_src emacs-lisp
 (use-package anki-editor
+  :ensure t)
+#+end_src
+** magit
+#+begin_src emacs-lisp
+  (use-package magit
   :ensure t)
 #+end_src
 * exwm
