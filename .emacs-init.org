@@ -20,6 +20,10 @@
 #+begin_src emacs-lisp :tangle yes
 (setq browse-url-browser-function 'browse-url-firefox)
 #+end_src
+*** Default font size
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :height 170)
+#+end_src
 *** COMMENT 把C-x w改成prefix key来启动我其他的东西
 #+begin_src emacs-lisp :tangle yes
 (define-prefix-command 'my-fastway)
@@ -125,6 +129,7 @@ Refer to centaur file [[~/.emacs.d/lisp/init-org.el][init-org.el]]
                               ))))
 #+end_src
 *** org-roam
+**** init codes
 from [[https://github.com/org-roam/org-roam][github]]
 #+begin_src emacs-lisp :tangle yes
   (use-package org-roam
@@ -141,7 +146,14 @@ from [[https://github.com/org-roam/org-roam][github]]
                 :map org-mode-map
                 (("C-c n i" . org-roam-insert))
                 (("C-c n I" . org-roam-insert-immediate))))
-
+#+end_src
+**** set db up when init
+from [[https://www.orgroam.com/manual.html#Setting-up-Org_002droam][manual]]
+#+begin_src emacs-lisp
+(org-roam-db-autosync-mode)
+#+end_src
+**** V2
+#+begin_src emacs-lisp
 (setq org-roam-v2-ack t)
 #+end_src
 **** COMMENT for company-org-roam
