@@ -20,7 +20,7 @@
 #+begin_src emacs-lisp :tangle yes
 (setq browse-url-browser-function 'browse-url-firefox)
 #+end_src
-*** Default font size
+*** COMMENT Default font size
 #+begin_src emacs-lisp
 (set-face-attribute 'default nil :height 170)
 #+end_src
@@ -29,7 +29,8 @@
 (define-prefix-command 'my-fastway)
 (global-set-key (kbd "C-x w") 'my-fastway)
 #+end_src
-*** 为了在vterm里用powerline10k,得改一下vterm的字体，出处在[[https://emacs-china.org/t/term-mode-powerline/13595/3][这里]]
+*** 为了在vterm里用powerline10k,得改一下vterm的字体，
+出处在[[https://emacs-china.org/t/term-mode-powerline/13595/3][这里]]
 #+begin_src emacs-lisp
   (add-hook 'vterm-mode-hook
             (lambda ()
@@ -131,28 +132,35 @@ Refer to centaur file [[~/.emacs.d/lisp/init-org.el][init-org.el]]
 *** org-roam
 **** init codes
 from [[https://github.com/org-roam/org-roam][github]]
+and from System Crafters' [[https://www.youtube.com/watch?v=AyhPmypHDEw&list=PLEoMzSkcN8oN3x3XaZQ-AXFKv52LZzjqD&index=1&t=1123s][video]]
 #+begin_src emacs-lisp :tangle yes
   (use-package org-roam
-        :ensure t
-        :hook
-        (after-init . org-roam-mode)
-        :custom
-        (org-roam-directory "~/org/notes")
-        (org-roam-link-title-format "R:%s")
-        :bind (:map org-roam-mode-map
-                (("C-c n l" . org-roam)
-                 ("C-c n f" . org-roam-find-file)
-                 ("C-c n g" . org-roam-graph-show))
-                :map org-mode-map
-                (("C-c n i" . org-roam-insert))
-                (("C-c n I" . org-roam-insert-immediate))))
+    :ensure t
+    :init
+    (setq org-roam-v2-ack t)
+    :hook
+    (after-init . org-roam-mode)
+    :custom
+    (org-roam-directory "~/org/notes")
+    (org-roam-link-title-format "R:%s")
+    (org-roam-completion-everywhere t)   ;;from SC roam1
+    :bind (:map org-roam-mode-map
+           (("C-c n l" .org-roam)
+            ("C-c n f" . org-roam-find-file)
+            ("C-c n g" . org-roam-graph-show))
+           :map org-mode-map
+           (("C-c n i" . org-roam-insert))
+           (("C-c n I" . org-roam-insert-immediate))
+           (("C-M-i" . completion-at-point))   ;;from SC roam1
+           ))
 #+end_src
 **** set db up when init
 from [[https://www.orgroam.com/manual.html#Setting-up-Org_002droam][manual]]
 #+begin_src emacs-lisp
 (org-roam-db-autosync-mode)
 #+end_src
-**** V2
+**** COMMENT V2
+v2的检查，没有这句roam会抱怨，不过正确的位置应该是在use-package的init里
 #+begin_src emacs-lisp
 (setq org-roam-v2-ack t)
 #+end_src
@@ -184,6 +192,7 @@ from [[https://github.com/lepisma/org-books][here]].一个在goodreads上拿到�
 #+begin_src emacs-lisp :tangle yes
 (setq org-books-file "~/org/notes/reading.org")
 #+end_src
+*** TODO set org font and font size
 ** elfeed
 [[https://github.com/skeeto/elfeed][Mainpage]] 
 *** elfeed-org
