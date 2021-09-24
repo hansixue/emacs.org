@@ -196,7 +196,7 @@ from [[https://github.com/lepisma/org-books][here]].一个在goodreads上拿到�
 (setq org-books-file "~/org/notes/reading.org")
 #+end_src
 *** TODO set org font and font size
-** elfeed
+** TODO elfeed
 [[https://github.com/skeeto/elfeed][Mainpage]] 
 *** elfeed-org
 [[https://github.com/remyhonig/elfeed-org][Mainpage]] 简单来说就是一个用org写的关注列表
@@ -309,6 +309,9 @@ from [[https://www.reddit.com/r/emacs/comments/gshn9c/doom_emacs_as_a_pdf_viewer
   (use-package magit
   :ensure t)
 #+end_src
+** TODO mu4e
+** which-key
+把describe-bindings的界面弄的好看点。
 * exwm
 ** codes
 about how dual monitor work with xrandr [[https://blog.summercat.com/configuring-mixed-dpi-monitors-with-xrandr.html][here]] have a solution.
@@ -459,5 +462,6 @@ about how to make the first workspace 1, not 0. is [[https://www.reddit.com/r/em
 最后启动emacs。
 OK。
 顺带，启动登录的画面的分辨率调节是在/efi/usr/share/sddm/scripts/Xsetup设置。
+** TODO [[https://github.com/farlado/emacs-wallpaper][这个包]]可以给exwm设置墙纸
 ** 一些常用的快捷键
 - 增加一个新的workspace: 在workspace的选单里按+，—是删除当前
