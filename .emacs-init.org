@@ -145,14 +145,17 @@ and from System Crafters' [[https://www.youtube.com/watch?v=AyhPmypHDEw&list=PLE
     (org-roam-link-title-format "R:%s")
     (org-roam-completion-everywhere t)   ;;from SC roam1
     :bind (:map org-roam-mode-map
-           (("C-c n l" .org-roam)
-            ("C-c n f" . org-roam-find-file)
-            ("C-c n g" . org-roam-graph-show))
+                                          ;("C-c n l" .org-roam) ;v1的设定，加了会报错
+           ("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-find-file)
+           ("C-c n g" . org-roam-graph-show)
            :map org-mode-map
-           (("C-c n i" . org-roam-insert))
-           (("C-c n I" . org-roam-insert-immediate))
-           (("C-M-i" . completion-at-point))   ;;from SC roam1
-           ))
+           ("C-c n i" . org-roam-insert)
+           ("C-c n I" . org-roam-insert-immediate)
+           ("C-M-i" . completion-at-point)
+           )   ;;from SC roam1
+    :config
+    (org-roam-setup))
 #+end_src
 **** set db up when init
 from [[https://www.orgroam.com/manual.html#Setting-up-Org_002droam][manual]]
