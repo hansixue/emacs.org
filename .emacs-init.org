@@ -174,13 +174,17 @@ company-org-roam has been replaced by capf, and its full functionality is now pr
 ;;(push 'company-org-roam company-backends)
 #+end_src
 *** org-brain
+[[https://github.com/Kungsgeten/org-brain][github]]
 #+begin_src emacs-lisp :tangle yes
-(global-set-key (kbd "C-c 2") 'org-brain-visualize)
-(use-package org-brain :ensure t
-  :init
-  (setq org-brain-path "~/org/notes")
-)
-(add-hook 'before-save-hook 'org-brain-ensure-ids-in-buffer)
+  (global-set-key (kbd "C-c 2") 'org-brain-visualize)
+  (use-package org-brain :ensure t
+               :init
+               (setq org-brain-path "~/org/notes")
+               (setq org-brain-include-file-entries nil)
+               (setq org-brain-file-entries-use-title nil)
+               (setq org-brain-headline-entry-name-format-string "%2$s")
+               )
+  ;; (add-hook 'before-save-hook 'org-brain-ensure-ids-in-buffer) 
 #+end_src
 *** COMMENT org-protocol
 from [[https://orgmode.org/worg/org-contrib/org-protocol.html][here]]
