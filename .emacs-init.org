@@ -81,6 +81,9 @@ elpa的fcitx5的版本太老了不支持，索性自己下载一个用
 Refer to centaur file [[~/.emacs.d/lisp/init-org.el][init-org.el]]
 *** folder of org files
 [[~/.emacs.d/lisp/init-org.el::115][org-agenda-files]]
+#+begin_src emacs-lisp
+(setq org-agenda-files '("~/org"))
+#+end_src]]
 *** 自动把全部子标题都DONE的TODO改为DONE
 出自org manual 5.5
 #+begin_src emacs-lisp :tangle yes
@@ -138,15 +141,20 @@ and from System Crafters' [[https://www.youtube.com/watch?v=AyhPmypHDEw&list=PLE
     :ensure t
     :init
     (setq org-roam-v2-ack t)
+    (setq org-roam-node-display-template "${title:*} ${tags:75}" ) ;设置C-cnf的时候title和tag的长度
     :hook
     (after-init . org-roam-mode)
     :custom
     (org-roam-directory "~/org/notes")
     (org-roam-link-title-format "R:%s")
     (org-roam-completion-everywhere t)   ;;from SC roam1
+    (org-roam-capture-templates
+     '(("d" "default" plain
+        "\n* ${title}%?"
+        :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: %^G")
+        :unnarrowed t)))
     :bind (:map org-roam-mode-map
-                                          ;("C-c n l" .org-roam) ;v1的设定，加了会报错
-           ("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n l" . org-roam-buffer-toggle) ;("C-c n l" .org-roam)是v1的设定，加了会报错
            ("C-c n f" . org-roam-find-file)
            ("C-c n g" . org-roam-graph-show)
            :map org-mode-map
@@ -177,11 +185,15 @@ company-org-roam has been replaced by capf, and its full functionality is now pr
 [[https://github.com/Kungsgeten/org-brain][github]]
 #+begin_src emacs-lisp :tangle yes
   (global-set-key (kbd "C-c 2") 'org-brain-visualize)
-  (use-package org-brain :ensure t
-               :init
+  (use-package org-brain :ensure
+               :hook
+               (org-brain-new-entry . (lambda () (org-entry-put (point) "ROAM_EXCLUDE" "t" )))
+            ;   (org-brain-new-entry-hook . (lambda () (print "brain hook is running")))
+               :init 
                (setq org-brain-path "~/org/notes")
                (setq org-brain-include-file-entries nil)
                (setq org-brain-file-entries-use-title nil)
+                                          ;(setq org-brain-scan-for-header-entries nil)
                (setq org-brain-headline-entry-name-format-string "%2$s")
                )
   ;; (add-hook 'before-save-hook 'org-brain-ensure-ids-in-buffer) 
