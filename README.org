@@ -1,2 +1,6 @@
 * This is my own config files
-that's all
+A config Using with [[https://github.com/seagle0128/.emacs.d][Centaur]]. I just added a line
+#+begin_src emacs-lisp
+(org-babel-load-file "path/to/this/org/file")
+#+end_src
+into init.el .
